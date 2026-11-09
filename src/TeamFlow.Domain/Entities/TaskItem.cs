@@ -21,4 +21,8 @@ public class TaskItem : BaseEntity
     public User Creator { get; set; } = null!;
 
     public DateTimeOffset? DueDate { get; set; }
+
+    // Navigation properties
+    public ICollection<Comment> Comments { get; set; } = new List<Comment>();
 }
+

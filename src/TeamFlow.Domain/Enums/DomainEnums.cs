@@ -38,3 +38,4 @@ public enum TaskPriority
     High = 2,
     Urgent = 3
 }
+

@@ -13,3 +13,4 @@ public class TeamMember
     public TeamRole Role { get; set; } = TeamRole.Member;
     public DateTimeOffset JoinedAt { get; set; } = DateTimeOffset.UtcNow;
 }
+

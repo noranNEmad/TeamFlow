@@ -13,3 +13,4 @@ public class OrganizationMember
     public OrganizationRole Role { get; set; } = OrganizationRole.Member;
     public DateTimeOffset JoinedAt { get; set; } = DateTimeOffset.UtcNow;
 }
+

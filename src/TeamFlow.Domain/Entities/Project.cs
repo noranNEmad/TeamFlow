@@ -19,3 +19,4 @@ public class Project : BaseEntity
     // Navigation properties
     public ICollection<TaskItem> Tasks { get; set; } = new List<TaskItem>();
 }
+
