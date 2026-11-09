@@ -1,0 +1,28 @@
+## Visual Studio / .NET Core
+*.user
+*.userosscache
+*.sln.docstates
+.vs/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+.dotnet/
+
+# Node / React
+node_modules/
+dist/
+build/
+.npm
+.eslintcache
+
+# PostgreSQL / Docker Local data
+.docker-data/
+postgres_data/
+
+# OS generated
+.DS_Store
+Thumbs.db
+desktop.ini
+*.tmp
+*.temp
