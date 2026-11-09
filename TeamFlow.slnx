@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/TeamFlow.API/TeamFlow.API.csproj" />
+    <Project Path="src/TeamFlow.Application/TeamFlow.Application.csproj" />
+    <Project Path="src/TeamFlow.Domain/TeamFlow.Domain.csproj" />
+    <Project Path="src/TeamFlow.Infrastructure/TeamFlow.Infrastructure.csproj" />
+  </Folder>
+</Solution>

@@ -1,0 +1,10 @@
+<Project>
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <!-- Keep MSBuild in single-node within isolated developer environments -->
+    <UseSharedCompilation>false</UseSharedCompilation>
+    <BuildInParallel>false</BuildInParallel>
+  </PropertyGroup>
+</Project>
