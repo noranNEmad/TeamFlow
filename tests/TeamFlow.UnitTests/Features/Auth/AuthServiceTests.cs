@@ -128,3 +128,4 @@ public class AuthServiceTests
         Assert.Equal("Auth.InvalidCredentials", result.Error.Code);
     }
 }
+

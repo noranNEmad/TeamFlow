@@ -14,3 +14,4 @@ public class BcryptPasswordHasher : IPasswordHasher
         return BCrypt.Net.BCrypt.EnhancedVerify(password, passwordHash);
     }
 }
+

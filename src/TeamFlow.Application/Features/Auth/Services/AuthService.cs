@@ -141,3 +141,4 @@ public class AuthService : IAuthService
         return string.IsNullOrWhiteSpace(cleaned) ? "workspace" : cleaned;
     }
 }
+
