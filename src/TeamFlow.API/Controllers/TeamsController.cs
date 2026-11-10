@@ -40,3 +40,4 @@ public class TeamsController : BaseApiController
         return BadRequest(new { error = result.Error.Code, message = result.Error.Description });
     }
 }
+

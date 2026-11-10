@@ -16,3 +16,4 @@ public interface ITaskService
     Task<Result<CommentDto>> AddCommentAsync(Guid taskId, CreateCommentRequest request, CancellationToken cancellationToken = default);
     Task<Result<List<CommentDto>>> GetCommentsAsync(Guid taskId, CancellationToken cancellationToken = default);
 }
+

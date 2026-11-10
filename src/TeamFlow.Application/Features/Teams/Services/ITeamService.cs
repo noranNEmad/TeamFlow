@@ -9,3 +9,4 @@ public interface ITeamService
     Task<Result<List<TeamDto>>> GetTeamsAsync(CancellationToken cancellationToken = default);
     Task<Result> AddMemberToTeamAsync(Guid teamId, AddTeamMemberRequest request, CancellationToken cancellationToken = default);
 }
+

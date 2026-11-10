@@ -19,3 +19,4 @@ public record AddTeamMemberRequest(
     Guid UserId,
     TeamRole Role
 );
+

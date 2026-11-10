@@ -9,3 +9,4 @@ public interface IProjectService
     Task<Result<List<ProjectDto>>> GetProjectsAsync(CancellationToken cancellationToken = default);
     Task<Result<ProjectDto>> GetProjectByIdAsync(Guid projectId, CancellationToken cancellationToken = default);
 }
+
