@@ -47,3 +47,4 @@ public class TaskItemConfiguration : IEntityTypeConfiguration<TaskItem>
         builder.HasIndex(t => t.AssigneeId);
     }
 }
+

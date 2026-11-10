@@ -27,3 +27,4 @@ public class TeamConfiguration : IEntityTypeConfiguration<Team>
         builder.HasIndex(t => new { t.OrganizationId, t.Name });
     }
 }
+

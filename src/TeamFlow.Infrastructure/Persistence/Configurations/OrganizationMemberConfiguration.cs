@@ -27,3 +27,4 @@ public class OrganizationMemberConfiguration : IEntityTypeConfiguration<Organiza
             .HasConversion<int>();
     }
 }
+

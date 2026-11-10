@@ -27,3 +27,4 @@ public class OrganizationConfiguration : IEntityTypeConfiguration<Organization>
             .HasMaxLength(1000);
     }
 }
+

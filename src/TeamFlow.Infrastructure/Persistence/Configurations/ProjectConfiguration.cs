@@ -42,3 +42,4 @@ public class ProjectConfiguration : IEntityTypeConfiguration<Project>
             .OnDelete(DeleteBehavior.SetNull);
     }
 }
+

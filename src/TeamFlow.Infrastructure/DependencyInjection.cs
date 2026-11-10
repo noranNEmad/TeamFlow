@@ -1,7 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using TeamFlow.Application.Common.Interfaces;
 using TeamFlow.Infrastructure.Persistence;
+using TeamFlow.Infrastructure.Security;
+using TeamFlow.Infrastructure.Services;
 
 namespace TeamFlow.Infrastructure;
 
@@ -17,6 +20,18 @@ public static class DependencyInjection
             {
                 npgsqlOptions.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName);
             }));
+
+        // Register IApplicationDbContext mapping to concrete ApplicationDbContext
+        services.AddScoped<IApplicationDbContext>(provider =>
+            provider.GetRequiredService<ApplicationDbContext>());
+
+        // HTTP Context Accessor
+        services.AddHttpContextAccessor();
+
+        // Infrastructure Security & Services
+        services.AddSingleton<IPasswordHasher, BcryptPasswordHasher>();
+        services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
+        services.AddScoped<ICurrentUserService, CurrentUserService>();
 
         return services;
     }

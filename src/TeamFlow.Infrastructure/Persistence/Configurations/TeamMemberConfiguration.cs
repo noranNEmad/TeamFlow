@@ -27,3 +27,4 @@ public class TeamMemberConfiguration : IEntityTypeConfiguration<TeamMember>
             .HasConversion<int>();
     }
 }
+

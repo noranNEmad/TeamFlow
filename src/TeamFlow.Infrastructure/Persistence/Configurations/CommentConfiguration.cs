@@ -29,3 +29,4 @@ public class CommentConfiguration : IEntityTypeConfiguration<Comment>
         builder.HasIndex(c => c.TaskItemId);
     }
 }
+

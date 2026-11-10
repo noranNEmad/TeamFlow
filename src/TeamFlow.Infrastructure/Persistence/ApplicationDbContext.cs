@@ -1,9 +1,10 @@
 using Microsoft.EntityFrameworkCore;
+using TeamFlow.Application.Common.Interfaces;
 using TeamFlow.Domain.Entities;
 
 namespace TeamFlow.Infrastructure.Persistence;
 
-public class ApplicationDbContext : DbContext
+public class ApplicationDbContext : DbContext, IApplicationDbContext
 {
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
         : base(options)
@@ -27,3 +28,4 @@ public class ApplicationDbContext : DbContext
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
     }
 }
+
