@@ -127,5 +127,52 @@ public class AuthServiceTests
         Assert.True(result.IsFailure);
         Assert.Equal("Auth.InvalidCredentials", result.Error.Code);
     }
+
+    [Fact]
+    public async Task RefreshTokenAsync_WithValidToken_RotatesTokenAndReturnsNewTokens()
+    {
+        // Arrange
+        var (authService, context) = CreateService();
+        var registerResult = await authService.RegisterAsync(new RegisterRequest("Alex Doe", "alex@test.com", "Password123!", "Alex Org"));
+        var originalRefreshToken = registerResult.Value.RefreshToken;
+
+        // Act
+        var refreshResult = await authService.RefreshTokenAsync(originalRefreshToken);
+
+        // Assert
+        Assert.True(refreshResult.IsSuccess);
+        Assert.NotEqual(originalRefreshToken, refreshResult.Value.RefreshToken);
+        Assert.NotEmpty(refreshResult.Value.Token);
+
+        // Verify old token is marked as revoked
+        var oldToken = await context.RefreshTokens.FirstOrDefaultAsync(rt => rt.Token == originalRefreshToken);
+        Assert.NotNull(oldToken);
+        Assert.True(oldToken.IsRevoked);
+        Assert.Equal(refreshResult.Value.RefreshToken, oldToken.ReplacedByToken);
+    }
+
+    [Fact]
+    public async Task RefreshTokenAsync_WithReusedRevokedToken_RevokesAllTokensAndReturnsCompromised()
+    {
+        // Arrange
+        var (authService, context) = CreateService();
+        var registerResult = await authService.RegisterAsync(new RegisterRequest("Compromised User", "comp@test.com", "Password123!", "Comp Org"));
+        var stolenToken = registerResult.Value.RefreshToken;
+
+        // First legit refresh
+        var legitimateRefresh = await authService.RefreshTokenAsync(stolenToken);
+        Assert.True(legitimateRefresh.IsSuccess);
+
+        // Act: Attacker attempts to use stolen token again (Token Reuse!)
+        var maliciousAttempt = await authService.RefreshTokenAsync(stolenToken);
+
+        // Assert
+        Assert.True(maliciousAttempt.IsFailure);
+        Assert.Equal("Auth.TokenCompromised", maliciousAttempt.Error.Code);
+
+        // Verify ALL active tokens for this user were revoked for security
+        var anyActive = await context.RefreshTokens.AnyAsync(rt => rt.UserId == registerResult.Value.User.Id && rt.RevokedAt == null);
+        Assert.False(anyActive);
+    }
 }
 

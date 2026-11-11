@@ -26,6 +26,7 @@ public class CommentConfiguration : IEntityTypeConfiguration<Comment>
             .HasForeignKey(c => c.AuthorId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        builder.HasIndex(c => c.OrganizationId);
         builder.HasIndex(c => c.TaskItemId);
     }
 }

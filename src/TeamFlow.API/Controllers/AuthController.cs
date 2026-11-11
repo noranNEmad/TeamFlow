@@ -33,6 +33,26 @@ public class AuthController : BaseApiController
         return HandleResult(result);
     }
 
+    [HttpPost("refresh-token")]
+    [AllowAnonymous]
+    public async Task<ActionResult<AuthResponse>> RefreshToken([FromBody] RefreshTokenRequest request, CancellationToken cancellationToken)
+    {
+        var result = await _authService.RefreshTokenAsync(request.RefreshToken, cancellationToken);
+        return HandleResult(result);
+    }
+
+    [HttpPost("revoke-token")]
+    [Authorize]
+    public async Task<IActionResult> RevokeToken([FromBody] RevokeTokenRequest request, CancellationToken cancellationToken)
+    {
+        var result = await _authService.RevokeTokenAsync(request.RefreshToken, cancellationToken);
+        if (result.IsSuccess)
+        {
+            return Ok(new { message = "Token revoked successfully." });
+        }
+        return BadRequest(new { error = result.Error.Code, message = result.Error.Description });
+    }
+
     [HttpGet("me")]
     [Authorize]
     public ActionResult GetCurrentUser()

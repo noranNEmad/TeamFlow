@@ -191,3 +191,4 @@ export const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
     </div>
   );
 };
+

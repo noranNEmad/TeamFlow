@@ -20,24 +20,57 @@ public class ProjectServiceTests
         public bool IsAuthenticated => true;
     }
 
-    private static (ProjectService service, ApplicationDbContext context, FakeCurrentUserService currentUserService) CreateService()
+    private class FakeCacheService : ICacheService
+    {
+        public readonly Dictionary<string, object> Storage = new();
+        public int GetCallCount;
+        public int SetCallCount;
+        public int RemoveCallCount;
+
+        public Task<T?> GetAsync<T>(string key, CancellationToken cancellationToken = default)
+        {
+            GetCallCount++;
+            if (Storage.TryGetValue(key, out var val))
+            {
+                return Task.FromResult((T?)val);
+            }
+            return Task.FromResult<T?>(default);
+        }
+
+        public Task SetAsync<T>(string key, T value, TimeSpan? expiration = null, CancellationToken cancellationToken = default)
+        {
+            SetCallCount++;
+            Storage[key] = value!;
+            return Task.CompletedTask;
+        }
+
+        public Task RemoveAsync(string key, CancellationToken cancellationToken = default)
+        {
+            RemoveCallCount++;
+            Storage.Remove(key);
+            return Task.CompletedTask;
+        }
+    }
+
+    private static (ProjectService service, ApplicationDbContext context, FakeCurrentUserService currentUserService, FakeCacheService cacheService) CreateService(bool withCache = false)
     {
         var options = new DbContextOptionsBuilder<ApplicationDbContext>()
             .UseInMemoryDatabase(databaseName: $"TeamFlow_Projects_{Guid.NewGuid()}")
             .Options;
 
-        var context = new ApplicationDbContext(options);
         var currentUserService = new FakeCurrentUserService();
-        var service = new ProjectService(context, currentUserService);
+        var cacheService = new FakeCacheService();
+        var context = new ApplicationDbContext(options, currentUserService);
+        var service = new ProjectService(context, currentUserService, withCache ? cacheService : null);
 
-        return (service, context, currentUserService);
+        return (service, context, currentUserService, cacheService);
     }
 
     [Fact]
     public async Task CreateProjectAsync_WithValidData_ReturnsSuccess()
     {
         // Arrange
-        var (service, context, currentUserService) = CreateService();
+        var (service, context, currentUserService, _) = CreateService();
         var org = new Organization { Id = currentUserService.OrganizationId!.Value, Name = "Acme Corp", Slug = "acme" };
         context.Organizations.Add(org);
         await context.SaveChangesAsync();
@@ -61,7 +94,7 @@ public class ProjectServiceTests
     public async Task CreateProjectAsync_WithDuplicateKeyInSameOrg_ReturnsConflict()
     {
         // Arrange
-        var (service, context, currentUserService) = CreateService();
+        var (service, context, currentUserService, _) = CreateService();
         var org = new Organization { Id = currentUserService.OrganizationId!.Value, Name = "Acme Corp", Slug = "acme" };
         context.Organizations.Add(org);
         await context.SaveChangesAsync();
@@ -77,6 +110,40 @@ public class ProjectServiceTests
         // Assert
         Assert.True(result.IsFailure);
         Assert.Equal("Project.KeyExists", result.Error.Code);
+    }
+
+    [Fact]
+    public async Task GetProjectsAsync_UsesCache_And_CreateProject_InvalidatesCache()
+    {
+        // Arrange
+        var (service, context, currentUserService, cacheService) = CreateService(withCache: true);
+        var org = new Organization { Id = currentUserService.OrganizationId!.Value, Name = "Acme Corp", Slug = "acme" };
+        context.Organizations.Add(org);
+        await context.SaveChangesAsync();
+
+        // 1. Initial Get: Cache Miss -> Queries DB & Sets Cache
+        var list1 = await service.GetProjectsAsync();
+        Assert.True(list1.IsSuccess);
+        Assert.Equal(1, cacheService.GetCallCount);
+        Assert.Equal(1, cacheService.SetCallCount);
+
+        // 2. Second Get: Cache Hit -> Returns Cached directly
+        var list2 = await service.GetProjectsAsync();
+        Assert.True(list2.IsSuccess);
+        Assert.Equal(2, cacheService.GetCallCount);
+        Assert.Equal(1, cacheService.SetCallCount); // Did not set again
+
+        // 3. Create Project -> Invalidates (Removes) Tenant Cache
+        var createResult = await service.CreateProjectAsync(new CreateProjectRequest("New Proj", "NEW", "Desc", null));
+        Assert.True(createResult.IsSuccess);
+        Assert.Equal(1, cacheService.RemoveCallCount);
+
+        // 4. Third Get: Cache Miss again -> Refreshes Cache with new project
+        var list3 = await service.GetProjectsAsync();
+        Assert.True(list3.IsSuccess);
+        Assert.Single(list3.Value);
+        Assert.Equal(3, cacheService.GetCallCount);
+        Assert.Equal(2, cacheService.SetCallCount);
     }
 }
 

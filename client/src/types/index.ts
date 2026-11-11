@@ -20,6 +20,7 @@ export interface Organization {
 
 export interface AuthResponse {
   token: string;
+  refreshToken?: string;
   user: User;
   organization: Organization;
 }
@@ -61,3 +62,4 @@ export interface CommentItem {
   content: string;
   createdAt: string;
 }
+

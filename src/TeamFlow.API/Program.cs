@@ -1,7 +1,10 @@
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using TeamFlow.API.Hubs;
+using TeamFlow.API.Services;
 using TeamFlow.Application;
+using TeamFlow.Application.Common.Interfaces;
 using TeamFlow.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -10,10 +13,14 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddApplicationServices();
 builder.Services.AddInfrastructureServices(builder.Configuration);
 
-// 2. Add Controllers
+// 2. Add SignalR Real-Time Notifier
+builder.Services.AddSignalR();
+builder.Services.AddScoped<IRealTimeNotifier, SignalRRealTimeNotifier>();
+
+// 3. Add Controllers
 builder.Services.AddControllers();
 
-// 3. Configure CORS for React Frontend
+// 4. Configure CORS for React Frontend (Allow credentials for WebSockets)
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
@@ -25,7 +32,7 @@ builder.Services.AddCors(options =>
     });
 });
 
-// 4. Configure JWT Authentication
+// 5. Configure JWT Authentication
 var jwtSecret = builder.Configuration["JwtSettings:Secret"]
     ?? "TeamFlow_Super_Secret_Key_For_Development_Environment_Must_Be_Long_2026!";
 var jwtIssuer = builder.Configuration["JwtSettings:Issuer"] ?? "TeamFlow";
@@ -51,6 +58,21 @@ builder.Services.AddAuthentication(options =>
         ValidateLifetime = true,
         ClockSkew = TimeSpan.Zero
     };
+
+    // Allow SignalR to read token from query string during WebSocket handshake
+    options.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            var accessToken = context.Request.Query["access_token"];
+            var path = context.HttpContext.Request.Path;
+            if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs/teamflow"))
+            {
+                context.Token = accessToken;
+            }
+            return Task.CompletedTask;
+        }
+    };
 });
 
 builder.Services.AddAuthorization();
@@ -67,11 +89,13 @@ app.UseAuthorization();
 app.MapGet("/", () => Results.Ok(new
 {
     Application = "TeamFlow API",
-    Version = "1.0-MVP",
+    Version = "2.0-SaaS",
     Status = "Healthy",
+    Realtime = "SignalR Enabled",
     Timestamp = DateTimeOffset.UtcNow
 }));
 
 app.MapControllers();
+app.MapHub<TeamFlowHub>("/hubs/teamflow");
 
 app.Run();

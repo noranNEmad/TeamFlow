@@ -2,7 +2,7 @@ using TeamFlow.Domain.Common;
 
 namespace TeamFlow.Domain.Entities;
 
-public class Team : BaseEntity
+public class Team : BaseEntity, ITenantScoped
 {
     public Guid OrganizationId { get; set; }
     public Organization Organization { get; set; } = null!;

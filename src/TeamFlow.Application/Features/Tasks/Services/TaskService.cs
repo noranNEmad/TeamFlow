@@ -11,11 +11,16 @@ public class TaskService : ITaskService
 {
     private readonly IApplicationDbContext _context;
     private readonly ICurrentUserService _currentUserService;
+    private readonly IRealTimeNotifier? _realTimeNotifier;
 
-    public TaskService(IApplicationDbContext context, ICurrentUserService currentUserService)
+    public TaskService(
+        IApplicationDbContext context,
+        ICurrentUserService currentUserService,
+        IRealTimeNotifier? realTimeNotifier = null)
     {
         _context = context;
         _currentUserService = currentUserService;
+        _realTimeNotifier = realTimeNotifier;
     }
 
     public async Task<Result<TaskDto>> CreateTaskAsync(CreateTaskRequest request, CancellationToken cancellationToken = default)
@@ -62,6 +67,7 @@ public class TaskService : ITaskService
 
         var task = new TaskItem
         {
+            OrganizationId = orgId.Value,
             ProjectId = request.ProjectId,
             CreatorId = userId.Value,
             AssigneeId = request.AssigneeId,
@@ -75,7 +81,7 @@ public class TaskService : ITaskService
         _context.Tasks.Add(task);
         await _context.SaveChangesAsync(cancellationToken);
 
-        return Result<TaskDto>.Success(new TaskDto(
+        var dto = new TaskDto(
             Id: task.Id,
             ProjectId: task.ProjectId,
             Title: task.Title,
@@ -89,7 +95,14 @@ public class TaskService : ITaskService
             DueDate: task.DueDate,
             CreatedAt: task.CreatedAt,
             CommentsCount: 0
-        ));
+        );
+
+        if (_realTimeNotifier != null)
+        {
+            await _realTimeNotifier.NotifyTaskCreatedAsync(task.ProjectId, dto, cancellationToken);
+        }
+
+        return Result<TaskDto>.Success(dto);
     }
 
     public async Task<Result<List<TaskDto>>> GetTasksByProjectIdAsync(
@@ -212,6 +225,11 @@ public class TaskService : ITaskService
 
         await _context.SaveChangesAsync(cancellationToken);
 
+        if (_realTimeNotifier != null)
+        {
+            await _realTimeNotifier.NotifyTaskStatusUpdatedAsync(task.ProjectId, task.Id, newStatus, cancellationToken);
+        }
+
         return Result<TaskDto>.Success(new TaskDto(
             task.Id,
             task.ProjectId,
@@ -325,6 +343,7 @@ public class TaskService : ITaskService
 
         var comment = new Comment
         {
+            OrganizationId = orgId.Value,
             TaskItemId = taskId,
             AuthorId = userId.Value,
             Content = request.Content.Trim()
@@ -333,14 +352,21 @@ public class TaskService : ITaskService
         _context.Comments.Add(comment);
         await _context.SaveChangesAsync(cancellationToken);
 
-        return Result<CommentDto>.Success(new CommentDto(
+        var commentDto = new CommentDto(
             comment.Id,
             comment.TaskItemId,
             comment.AuthorId,
             author?.FullName ?? "Unknown",
             comment.Content,
             comment.CreatedAt
-        ));
+        );
+
+        if (_realTimeNotifier != null)
+        {
+            await _realTimeNotifier.NotifyCommentAddedAsync(task.ProjectId, taskId, commentDto, cancellationToken);
+        }
+
+        return Result<CommentDto>.Success(commentDto);
     }
 
     public async Task<Result<List<CommentDto>>> GetCommentsAsync(Guid taskId, CancellationToken cancellationToken = default)

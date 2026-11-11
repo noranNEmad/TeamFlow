@@ -2,8 +2,10 @@ using TeamFlow.Domain.Common;
 
 namespace TeamFlow.Domain.Entities;
 
-public class Comment : BaseEntity
+public class Comment : BaseEntity, ITenantScoped
 {
+    public Guid OrganizationId { get; set; }
+
     public Guid TaskItemId { get; set; }
     public TaskItem TaskItem { get; set; } = null!;
 

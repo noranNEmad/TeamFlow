@@ -26,8 +26,8 @@ public class TaskServiceTests
             .UseInMemoryDatabase(databaseName: $"TeamFlow_Tasks_{Guid.NewGuid()}")
             .Options;
 
-        var context = new ApplicationDbContext(options);
         var currentUserService = new FakeCurrentUserService();
+        var context = new ApplicationDbContext(options, currentUserService);
 
         var user = new User
         {

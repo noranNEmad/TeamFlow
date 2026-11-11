@@ -11,11 +11,16 @@ public class ProjectService : IProjectService
 {
     private readonly IApplicationDbContext _context;
     private readonly ICurrentUserService _currentUserService;
+    private readonly ICacheService? _cacheService;
 
-    public ProjectService(IApplicationDbContext context, ICurrentUserService currentUserService)
+    public ProjectService(
+        IApplicationDbContext context,
+        ICurrentUserService currentUserService,
+        ICacheService? cacheService = null)
     {
         _context = context;
         _currentUserService = currentUserService;
+        _cacheService = cacheService;
     }
 
     public async Task<Result<ProjectDto>> CreateProjectAsync(CreateProjectRequest request, CancellationToken cancellationToken = default)
@@ -69,6 +74,11 @@ public class ProjectService : IProjectService
         _context.Projects.Add(project);
         await _context.SaveChangesAsync(cancellationToken);
 
+        if (_cacheService != null)
+        {
+            await _cacheService.RemoveAsync($"tenant_{orgId.Value}_projects", cancellationToken);
+        }
+
         return Result<ProjectDto>.Success(new ProjectDto(
             Id: project.Id,
             Name: project.Name,
@@ -91,6 +101,16 @@ public class ProjectService : IProjectService
             return Result<List<ProjectDto>>.Failure(Error.Unauthorized("Auth.Unauthorized", "Organization context is missing."));
         }
 
+        var cacheKey = $"tenant_{orgId.Value}_projects";
+        if (_cacheService != null)
+        {
+            var cachedProjects = await _cacheService.GetAsync<List<ProjectDto>>(cacheKey, cancellationToken);
+            if (cachedProjects != null)
+            {
+                return Result<List<ProjectDto>>.Success(cachedProjects);
+            }
+        }
+
         var projects = await _context.Projects
             .Where(p => p.OrganizationId == orgId.Value)
             .Include(p => p.Team)
@@ -109,6 +129,11 @@ public class ProjectService : IProjectService
                 p.CreatedAt
             ))
             .ToListAsync(cancellationToken);
+
+        if (_cacheService != null)
+        {
+            await _cacheService.SetAsync(cacheKey, projects, TimeSpan.FromMinutes(10), cancellationToken);
+        }
 
         return Result<List<ProjectDto>>.Success(projects);
     }

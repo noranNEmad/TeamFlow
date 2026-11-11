@@ -6,8 +6,10 @@ import { CreateTaskModal } from '../components/CreateTaskModal';
 import { TaskDetailsModal } from '../components/TaskDetailsModal';
 import { projectsApi } from '../api/projects';
 import { tasksApi } from '../api/tasks';
+import { signalRService } from '../services/signalr';
+import { useAuth } from '../context/AuthContext';
 import { Project, TaskItem, TaskStatus } from '../types';
-import { Plus, ArrowLeft, CheckCircle2, Circle, Clock, CheckCheck } from 'lucide-react';
+import { Plus, ArrowLeft, CheckCircle2, Circle, Clock, CheckCheck, Radio } from 'lucide-react';
 
 interface ColumnDef {
   status: TaskStatus;
@@ -25,6 +27,7 @@ const columns: ColumnDef[] = [
 
 export const KanbanPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const { token } = useAuth();
   const [project, setProject] = useState<Project | null>(null);
   const [tasks, setTasks] = useState<TaskItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -36,10 +39,39 @@ export const KanbanPage: React.FC = () => {
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
 
   useEffect(() => {
-    if (id) {
-      loadProjectAndTasks(id);
+    if (!id) return;
+
+    loadProjectAndTasks(id);
+
+    if (token) {
+      signalRService.startConnection(token).then(() => {
+        signalRService.joinProjectBoard(id);
+      });
+
+      const unsubscribeCreated = signalRService.onTaskCreated((newTask) => {
+        setTasks((prev) => (prev.some((t) => t.id === newTask.id) ? prev : [newTask, ...prev]));
+      });
+
+      const unsubscribeUpdated = signalRService.onTaskStatusUpdated(({ taskId, status }) => {
+        setTasks((prev) =>
+          prev.map((t) => (t.id === taskId ? { ...t, status: status as TaskStatus } : t))
+        );
+      });
+
+      const unsubscribeComment = signalRService.onCommentAdded(({ taskId }) => {
+        setTasks((prev) =>
+          prev.map((t) => (t.id === taskId ? { ...t, commentsCount: t.commentsCount + 1 } : t))
+        );
+      });
+
+      return () => {
+        signalRService.leaveProjectBoard(id);
+        unsubscribeCreated();
+        unsubscribeUpdated();
+        unsubscribeComment();
+      };
     }
-  }, [id]);
+  }, [id, token]);
 
   const loadProjectAndTasks = async (projectId: string) => {
     setLoading(true);
@@ -107,6 +139,10 @@ export const KanbanPage: React.FC = () => {
                 <h1 className="text-xl font-extrabold text-slate-900 tracking-tight">
                   {project?.name || 'Loading Project...'}
                 </h1>
+                <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[11px] font-semibold border border-emerald-200">
+                  <Radio className="w-3 h-3 text-emerald-600 animate-pulse" />
+                  <span>Realtime</span>
+                </div>
               </div>
               {project?.description && (
                 <p className="text-xs text-slate-500 mt-0.5">{project.description}</p>

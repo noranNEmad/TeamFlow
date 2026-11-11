@@ -33,6 +33,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setToken(data.token);
 
     localStorage.setItem('teamflow_token', data.token);
+    if (data.refreshToken) {
+      localStorage.setItem('teamflow_refresh_token', data.refreshToken);
+    }
     localStorage.setItem('teamflow_user', JSON.stringify(data.user));
     localStorage.setItem('teamflow_org', JSON.stringify(data.organization));
   };
@@ -43,6 +46,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setToken(null);
 
     localStorage.removeItem('teamflow_token');
+    localStorage.removeItem('teamflow_refresh_token');
     localStorage.removeItem('teamflow_user');
     localStorage.removeItem('teamflow_org');
     window.location.href = '/login';

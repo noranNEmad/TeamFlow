@@ -23,3 +23,4 @@ export const projectsApi = {
     return res.data;
   },
 };
+

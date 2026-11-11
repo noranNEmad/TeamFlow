@@ -43,6 +43,7 @@ public class TaskItemConfiguration : IEntityTypeConfiguration<TaskItem>
             .OnDelete(DeleteBehavior.SetNull);
 
         // Crucial performance indexes for Kanban boards and filters
+        builder.HasIndex(t => t.OrganizationId);
         builder.HasIndex(t => new { t.ProjectId, t.Status });
         builder.HasIndex(t => t.AssigneeId);
     }

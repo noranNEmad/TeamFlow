@@ -39,6 +39,9 @@ namespace TeamFlow.Infrastructure.Persistence.Migrations
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid");
+
                     b.Property<Guid>("TaskItemId")
                         .HasColumnType("uuid");
 
@@ -48,6 +51,8 @@ namespace TeamFlow.Infrastructure.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("AuthorId");
+
+                    b.HasIndex("OrganizationId");
 
                     b.HasIndex("TaskItemId");
 
@@ -154,6 +159,45 @@ namespace TeamFlow.Infrastructure.Persistence.Migrations
                     b.ToTable("projects", (string)null);
                 });
 
+            modelBuilder.Entity("TeamFlow.Domain.Entities.RefreshToken", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ReplacedByToken")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset?>("RevokedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Token")
+                        .IsUnique();
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("refresh_tokens", (string)null);
+                });
+
             modelBuilder.Entity("TeamFlow.Domain.Entities.TaskItem", b =>
                 {
                     b.Property<Guid>("Id")
@@ -175,6 +219,9 @@ namespace TeamFlow.Infrastructure.Persistence.Migrations
 
                     b.Property<DateTimeOffset?>("DueDate")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid");
 
                     b.Property<int>("Priority")
                         .HasColumnType("integer");
@@ -198,6 +245,8 @@ namespace TeamFlow.Infrastructure.Persistence.Migrations
                     b.HasIndex("AssigneeId");
 
                     b.HasIndex("CreatorId");
+
+                    b.HasIndex("OrganizationId");
 
                     b.HasIndex("ProjectId", "Status");
 
@@ -355,6 +404,17 @@ namespace TeamFlow.Infrastructure.Persistence.Migrations
                     b.Navigation("Team");
                 });
 
+            modelBuilder.Entity("TeamFlow.Domain.Entities.RefreshToken", b =>
+                {
+                    b.HasOne("TeamFlow.Domain.Entities.User", "User")
+                        .WithMany("RefreshTokens")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("TeamFlow.Domain.Entities.TaskItem", b =>
                 {
                     b.HasOne("TeamFlow.Domain.Entities.User", "Assignee")
@@ -446,6 +506,8 @@ namespace TeamFlow.Infrastructure.Persistence.Migrations
                     b.Navigation("CreatedTasks");
 
                     b.Navigation("OrganizationMemberships");
+
+                    b.Navigation("RefreshTokens");
 
                     b.Navigation("TeamMemberships");
                 });

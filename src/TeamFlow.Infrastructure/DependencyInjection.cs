@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using TeamFlow.Application.Common.Interfaces;
+using TeamFlow.Infrastructure.Caching;
 using TeamFlow.Infrastructure.Persistence;
 using TeamFlow.Infrastructure.Security;
 using TeamFlow.Infrastructure.Services;
@@ -32,6 +33,15 @@ public static class DependencyInjection
         services.AddSingleton<IPasswordHasher, BcryptPasswordHasher>();
         services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
+
+        // Redis Distributed Caching with fallback configuration
+        var redisConnection = configuration.GetConnectionString("Redis") ?? "localhost:6379";
+        services.AddStackExchangeRedisCache(options =>
+        {
+            options.Configuration = redisConnection;
+            options.InstanceName = "TeamFlow:";
+        });
+        services.AddSingleton<ICacheService, RedisCacheService>();
 
         return services;
     }

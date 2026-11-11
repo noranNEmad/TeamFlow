@@ -26,9 +26,17 @@ public record LoginRequest(
     string Password
 );
 
+public record RefreshTokenRequest(
+    string RefreshToken
+);
+
+public record RevokeTokenRequest(
+    string RefreshToken
+);
+
 public record AuthResponse(
     string Token,
+    string RefreshToken,
     UserDto User,
     OrganizationDto Organization
 );
-

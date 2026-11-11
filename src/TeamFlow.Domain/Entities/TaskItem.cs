@@ -3,8 +3,10 @@ using TeamFlow.Domain.Enums;
 
 namespace TeamFlow.Domain.Entities;
 
-public class TaskItem : BaseEntity
+public class TaskItem : BaseEntity, ITenantScoped
 {
+    public Guid OrganizationId { get; set; }
+
     public Guid ProjectId { get; set; }
     public Project Project { get; set; } = null!;
 
