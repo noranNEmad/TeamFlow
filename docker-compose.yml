@@ -11,6 +11,11 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d TeamFlowDb"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   redis:
     image: redis:7-alpine
@@ -18,6 +23,11 @@ services:
     restart: always
     ports:
       - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   rabbitmq:
     image: rabbitmq:3-management-alpine
@@ -29,6 +39,74 @@ services:
     ports:
       - "5672:5672"
       - "15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  core-api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    container_name: teamflow-api
+    restart: always
+    environment:
+      ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=TeamFlowDb;Username=postgres;Password=postgres"
+      ConnectionStrings__Redis: "redis:6379"
+      ConnectionStrings__RabbitMQ: "rabbitmq"
+      ASPNETCORE_ENVIRONMENT: "Production"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    ports:
+      - "5100:5100"
+
+  notifications:
+    build:
+      context: .
+      dockerfile: Dockerfile.notifications
+    container_name: teamflow-notifications
+    restart: always
+    environment:
+      ConnectionStrings__RabbitMQ: "rabbitmq"
+      ASPNETCORE_ENVIRONMENT: "Production"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    ports:
+      - "5050:5050"
+
+  gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile.gateway
+    container_name: teamflow-gateway
+    restart: always
+    environment:
+      ReverseProxy__Clusters__core-api-cluster__Destinations__core-api-destination__Address: "http://core-api:5100"
+      ReverseProxy__Clusters__notifications-cluster__Destinations__notifications-destination__Address: "http://notifications:5050"
+      ASPNETCORE_ENVIRONMENT: "Production"
+    depends_on:
+      - core-api
+      - notifications
+    ports:
+      - "5000:5000"
+
+  client:
+    build:
+      context: .
+      dockerfile: Dockerfile.client
+    container_name: teamflow-client
+    restart: always
+    depends_on:
+      - gateway
+    ports:
+      - "3000:80"
 
 volumes:
   postgres_data:

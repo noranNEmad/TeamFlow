@@ -32,6 +32,10 @@ builder.Services.AddRateLimiter(options =>
     });
 });
 
+// 4. Health Checks
+builder.Services.AddHealthChecks()
+    .AddCheck("self", () => Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult.Healthy());
+
 var app = builder.Build();
 
 app.UseCors("AllowFrontend");
@@ -44,6 +48,8 @@ app.MapGet("/", () => Results.Ok(new
     Version = "3.0-Distributed",
     Timestamp = DateTimeOffset.UtcNow
 }));
+
+app.MapHealthChecks("/health");
 
 // Route requests through YARP Reverse Proxy
 app.MapReverseProxy();

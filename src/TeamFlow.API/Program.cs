@@ -1,5 +1,7 @@
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.IdentityModel.Tokens;
 using TeamFlow.API.Hubs;
 using TeamFlow.API.Services;
@@ -77,6 +79,11 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 
+// 6. Enterprise Health Checks (Liveness and Readiness Probes)
+builder.Services.AddHealthChecks()
+    .AddCheck("self", () => HealthCheckResult.Healthy(), tags: ["live"])
+    .AddCheck("readiness", () => HealthCheckResult.Healthy("System is ready"), tags: ["ready"]);
+
 var app = builder.Build();
 
 app.UseHttpsRedirection();
@@ -97,5 +104,16 @@ app.MapGet("/", () => Results.Ok(new
 
 app.MapControllers();
 app.MapHub<TeamFlowHub>("/hubs/teamflow");
+
+// Map Health Checks for Kubernetes / Container Orchestrators
+app.MapHealthChecks("/health/live", new HealthCheckOptions
+{
+    Predicate = check => check.Tags.Contains("live")
+});
+
+app.MapHealthChecks("/health/ready", new HealthCheckOptions
+{
+    Predicate = check => check.Tags.Contains("ready")
+});
 
 app.Run();
