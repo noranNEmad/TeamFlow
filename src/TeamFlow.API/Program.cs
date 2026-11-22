@@ -1,6 +1,7 @@
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.IdentityModel.Tokens;
 using TeamFlow.API.Hubs;
@@ -8,6 +9,7 @@ using TeamFlow.API.Services;
 using TeamFlow.Application;
 using TeamFlow.Application.Common.Interfaces;
 using TeamFlow.Infrastructure;
+using TeamFlow.Infrastructure.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -86,7 +88,26 @@ builder.Services.AddHealthChecks()
 
 var app = builder.Build();
 
-app.UseHttpsRedirection();
+// Auto-migrate Database in Development
+try
+{
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    if (db.Database.IsRelational())
+    {
+        await db.Database.MigrateAsync();
+        app.Logger.LogInformation("Database migrations applied successfully.");
+    }
+}
+catch (Exception ex)
+{
+    app.Logger.LogWarning("Could not auto-migrate database on startup. Ensure PostgreSQL container is running: {Message}", ex.Message);
+}
+
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
 
 app.UseCors("AllowFrontend");
 

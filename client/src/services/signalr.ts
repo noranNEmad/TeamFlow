@@ -44,16 +44,19 @@ class SignalRService {
   }
 
   public onTaskCreated(callback: (task: TaskItem) => void): () => void {
+    this.connection?.off('TaskCreated');
     this.connection?.on('TaskCreated', callback);
     return () => this.connection?.off('TaskCreated', callback);
   }
 
   public onTaskStatusUpdated(callback: (data: { taskId: string; status: number }) => void): () => void {
+    this.connection?.off('TaskStatusUpdated');
     this.connection?.on('TaskStatusUpdated', callback);
     return () => this.connection?.off('TaskStatusUpdated', callback);
   }
 
   public onCommentAdded(callback: (data: { taskId: string; comment: CommentItem }) => void): () => void {
+    this.connection?.off('CommentAdded');
     this.connection?.on('CommentAdded', callback);
     return () => this.connection?.off('CommentAdded', callback);
   }

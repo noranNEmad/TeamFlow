@@ -103,7 +103,7 @@ export const KanbanPage: React.FC = () => {
   };
 
   const handleTaskCreated = (newTask: TaskItem) => {
-    setTasks((prev) => [newTask, ...prev]);
+    setTasks((prev) => (prev.some((t) => t.id === newTask.id) ? prev : [newTask, ...prev]));
   };
 
   const handleTaskUpdated = (updatedTask: TaskItem) => {
