@@ -4,6 +4,7 @@ using TeamFlow.Application.Common.Models;
 using TeamFlow.Application.Features.Tasks.DTOs;
 using TeamFlow.Domain.Entities;
 using TeamFlow.Domain.Enums;
+using TeamFlow.Domain.Events;
 
 namespace TeamFlow.Application.Features.Tasks.Services;
 
@@ -77,6 +78,14 @@ public class TaskService : ITaskService
             Priority = request.Priority,
             DueDate = request.DueDate
         };
+
+        task.AddDomainEvent(new TaskCreatedEvent(
+            task.Id,
+            task.ProjectId,
+            task.OrganizationId,
+            task.Title,
+            creatorName,
+            DateTime.UtcNow));
 
         _context.Tasks.Add(task);
         await _context.SaveChangesAsync(cancellationToken);
@@ -220,8 +229,17 @@ public class TaskService : ITaskService
             return Result<TaskDto>.Failure(Error.NotFound("Task.NotFound", "Task was not found."));
         }
 
+        var oldStatus = task.Status;
         task.Status = newStatus;
         task.UpdatedAt = DateTimeOffset.UtcNow;
+
+        task.AddDomainEvent(new TaskStatusUpdatedEvent(
+            task.Id,
+            task.ProjectId,
+            task.OrganizationId,
+            oldStatus,
+            newStatus,
+            DateTime.UtcNow));
 
         await _context.SaveChangesAsync(cancellationToken);
 

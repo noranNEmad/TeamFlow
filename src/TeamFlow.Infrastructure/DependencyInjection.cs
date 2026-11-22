@@ -2,7 +2,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using TeamFlow.Application.Common.Interfaces;
+using TeamFlow.Infrastructure.BackgroundJobs;
 using TeamFlow.Infrastructure.Caching;
+using TeamFlow.Infrastructure.Messaging;
 using TeamFlow.Infrastructure.Persistence;
 using TeamFlow.Infrastructure.Security;
 using TeamFlow.Infrastructure.Services;
@@ -42,6 +44,10 @@ public static class DependencyInjection
             options.InstanceName = "TeamFlow:";
         });
         services.AddSingleton<ICacheService, RedisCacheService>();
+
+        // RabbitMQ Event Bus & Outbox Background Processor
+        services.AddSingleton<IEventBus, RabbitMQEventBus>();
+        services.AddHostedService<OutboxProcessorBackgroundService>();
 
         return services;
     }

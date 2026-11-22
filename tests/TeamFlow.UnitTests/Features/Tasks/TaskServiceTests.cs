@@ -133,5 +133,23 @@ public class TaskServiceTests
         Assert.True(comments.IsSuccess);
         Assert.Single(comments.Value);
     }
+
+    [Fact]
+    public async Task CreateTaskAsync_PersistsOutboxMessage_ForEventDrivenArchitecture()
+    {
+        // Arrange
+        var (service, context, _, project) = CreateServiceWithProject();
+        var request = new CreateTaskRequest(project.Id, "Outbox Task", "Testing transactional outbox", TaskItemStatus.Todo, TaskPriority.High, null, null);
+
+        // Act
+        var result = await service.CreateTaskAsync(request);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        var outboxMessage = await context.OutboxMessages.FirstOrDefaultAsync(m => m.Type == "TaskCreatedEvent");
+        Assert.NotNull(outboxMessage);
+        Assert.Contains(result.Value.Id.ToString(), outboxMessage.Content);
+        Assert.Null(outboxMessage.ProcessedOnUtc);
+    }
 }
 

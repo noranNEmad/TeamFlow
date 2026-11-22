@@ -4,6 +4,8 @@
     <Project Path="src/TeamFlow.Application/TeamFlow.Application.csproj" />
     <Project Path="src/TeamFlow.Domain/TeamFlow.Domain.csproj" />
     <Project Path="src/TeamFlow.Infrastructure/TeamFlow.Infrastructure.csproj" />
+    <Project Path="src/TeamFlow.Notifications/TeamFlow.Notifications.csproj" />
+    <Project Path="src/TeamFlow.Gateway/TeamFlow.Gateway.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/TeamFlow.UnitTests/TeamFlow.UnitTests.csproj" />

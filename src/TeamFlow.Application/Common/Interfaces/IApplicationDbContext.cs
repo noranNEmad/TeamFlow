@@ -14,6 +14,7 @@ public interface IApplicationDbContext
     DbSet<TaskItem> Tasks { get; }
     DbSet<Comment> Comments { get; }
     DbSet<RefreshToken> RefreshTokens { get; }
+    DbSet<OutboxMessage> OutboxMessages { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

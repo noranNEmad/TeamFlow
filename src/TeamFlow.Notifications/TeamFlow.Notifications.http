@@ -1,0 +1,6 @@
+@TeamFlow.Notifications_HostAddress = http://localhost:5256
+
+GET {{TeamFlow.Notifications_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
