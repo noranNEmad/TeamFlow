@@ -13,6 +13,33 @@
 
 ---
 
+## 📸 Screenshots & Application Preview
+
+<div align="center">
+
+### 🎯 Real-Time Collaborative Kanban Board
+*Live updates across active collaborators via SignalR WebSockets, task lifecycle status updates, and optimistic UI transitions.*
+
+![TeamFlow Kanban Board](docs/images/01-kanban-board.png)
+
+</div>
+
+<br/>
+
+| 📂 Multi-Tenant Project Dashboard | ➕ Create New Project Modal |
+| :---: | :---: |
+| ![Project Dashboard](docs/images/02-projects-dashboard.png) | ![Create Project](docs/images/03-create-project-modal.png) |
+
+| 📝 Task Creation Modal | 💬 Task Details & Discussion Thread |
+| :---: | :---: |
+| ![Create Task](docs/images/04-create-task-modal.png) | ![Task Details](docs/images/05-task-details-discussion.png) |
+
+| 🔐 Enterprise Authentication (Sign In) | 🏢 Multi-Tenant Workspace Registration |
+| :---: | :---: |
+| ![Sign In](docs/images/06-login-page.png) | ![Workspace Registration](docs/images/07-register-page.png) |
+
+---
+
 ## 🏛️ System Architecture
 
 ```
