@@ -7,9 +7,12 @@
 [![Redis](https://img.shields.io/badge/Redis-7-DC382D?logo=redis&logoColor=white)](https://redis.io/)
 [![RabbitMQ](https://img.shields.io/badge/RabbitMQ-3.13-FF6600?logo=rabbitmq&logoColor=white)](https://www.rabbitmq.com/)
 [![Docker](https://img.shields.io/badge/Docker-Enabled-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
+[![Live Demo](https://img.shields.io/badge/Live_Demo-Vercel-black?logo=vercel&logoColor=white)](https://team-flow-alpha-blush.vercel.app)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 **TeamFlow** is a production-grade, enterprise-ready Project Management SaaS platform designed to manage workspaces, projects, teams, and collaborative Kanban boards in real-time. Built from the ground up with **Clean Architecture**, **SOLID principles**, and **Domain-Driven Design (DDD)**.
+
+🌐 **Live Demo:** [https://team-flow-alpha-blush.vercel.app](https://team-flow-alpha-blush.vercel.app)
 
 ---
 
