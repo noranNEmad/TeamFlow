@@ -9,8 +9,10 @@ class SignalRService {
       return;
     }
 
+    const hubBase = import.meta.env.VITE_API_BASE_URL || '';
+
     this.connection = new signalR.HubConnectionBuilder()
-      .withUrl('/hubs/teamflow', {
+      .withUrl(`${hubBase}/hubs/teamflow`, {
         accessTokenFactory: () => token,
       })
       .withAutomaticReconnect()

@@ -50,12 +50,12 @@ builder.Services.AddScoped<IRealTimeNotifier, SignalRRealTimeNotifier>();
 // 3. Add Controllers
 builder.Services.AddControllers();
 
-// 4. Configure CORS for React Frontend (Allow credentials for WebSockets)
+// 4. Configure CORS for React Frontend (Allow credentials for WebSockets & Cloud deployments)
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins("http://localhost:5173", "http://localhost:3000")
+        policy.SetIsOriginAllowed(origin => true)
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials();

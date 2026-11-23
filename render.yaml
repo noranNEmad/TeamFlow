@@ -1,0 +1,33 @@
+databases:
+  - name: teamflow-db
+    databaseName: TeamFlowDb
+    user: postgres
+    plan: free
+    region: frankfurt
+
+services:
+  - type: web
+    name: teamflow-api
+    runtime: docker
+    dockerfilePath: Dockerfile.api
+    plan: free
+    region: frankfurt
+    branch: main
+    autoDeploy: true
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: ConnectionStrings__DefaultConnection
+        fromDatabase:
+          name: teamflow-db
+          property: connectionString
+      - key: ConnectionStrings__Redis
+        value: "localhost:6379"
+      - key: ConnectionStrings__RabbitMQ
+        value: "localhost"
+      - key: JwtSettings__Secret
+        generateValue: true
+      - key: JwtSettings__Issuer
+        value: TeamFlow
+      - key: JwtSettings__Audience
+        value: TeamFlowUsers

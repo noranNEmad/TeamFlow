@@ -19,5 +19,7 @@ FROM mcr.microsoft.com/dotnet/aspnet:10.0-alpine AS runtime
 WORKDIR /app
 COPY --from=build /out .
 EXPOSE 5100
-ENV ASPNETCORE_URLS=http://+:5100
+EXPOSE 10000
+EXPOSE 8080
+ENV ASPNETCORE_URLS=http://+:5100;http://+:10000;http://+:8080
 ENTRYPOINT ["dotnet", "TeamFlow.API.dll"]
