@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { X, CheckSquare } from 'lucide-react';
+import { X, CheckSquare, Sparkles } from 'lucide-react';
 import { tasksApi } from '../api/tasks';
+import { aiApi } from '../api/ai';
 import { TaskItem, TaskStatus, TaskPriority } from '../types';
 
 interface CreateTaskModalProps {
@@ -24,9 +25,29 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
   const [priority, setPriority] = useState<TaskPriority>(1);
   const [dueDate, setDueDate] = useState('');
   const [loading, setLoading] = useState(false);
+  const [aiLoading, setAiLoading] = useState(false);
   const [error, setError] = useState('');
 
   if (!isOpen) return null;
+
+  const handleAiGenerate = async () => {
+    if (!title.trim()) return;
+    setAiLoading(true);
+    setError('');
+    try {
+      const breakdown = await aiApi.generateBreakdown(title, description);
+      setDescription(breakdown.formattedMarkdown);
+      if (breakdown.suggestedPriority !== undefined) {
+        setPriority(breakdown.suggestedPriority as TaskPriority);
+      }
+    } catch (err) {
+      console.warn('AI Generate backend failed, using client fallback', err);
+      const fallbackText = `### 🎯 User Story & Scope\nImplement and verify full-stack requirements for '${title}'.\n\n### ✅ Acceptance Criteria\n- [ ] Implement core domain logic and validation for '${title}'\n- [ ] Expose RESTful API endpoints with standard HTTP status codes\n- [ ] Connect reactive frontend state with optimistic UI updates\n- [ ] Add automated unit and integration tests\n\n### 🧪 Verification\n- [ ] Automated integration tests\n- [ ] Manual regression testing`;
+      setDescription(fallbackText);
+    } finally {
+      setAiLoading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -84,13 +105,25 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">Description (Markdown Supported)</label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-xs font-semibold text-slate-700 uppercase">Description (Markdown Supported)</label>
+              <button
+                type="button"
+                onClick={handleAiGenerate}
+                disabled={aiLoading || !title.trim()}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200/80 rounded-lg transition-all duration-150 disabled:opacity-40 shadow-sm"
+                title="Use AI to generate acceptance criteria and scope breakdown"
+              >
+                <Sparkles className={`w-3.5 h-3.5 text-purple-600 ${aiLoading ? 'animate-spin' : ''}`} />
+                <span>{aiLoading ? 'AI Generating...' : '✨ AI Copilot'}</span>
+              </button>
+            </div>
             <textarea
-              rows={3}
-              placeholder="Detailed acceptance criteria or implementation notes..."
+              rows={4}
+              placeholder="Detailed acceptance criteria or implementation notes (or click ✨ AI Copilot to generate)..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white"
+              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:bg-white font-mono text-xs leading-relaxed"
             />
           </div>
 

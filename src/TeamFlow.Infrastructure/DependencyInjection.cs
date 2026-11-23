@@ -45,6 +45,9 @@ public static class DependencyInjection
         });
         services.AddSingleton<ICacheService, RedisCacheService>();
 
+        // AI Copilot Assistant Service
+        services.AddHttpClient<IAiAssistantService, AiAssistantService>();
+
         // RabbitMQ Event Bus & Outbox Background Processor
         services.AddSingleton<IEventBus, RabbitMQEventBus>();
         services.AddHostedService<OutboxProcessorBackgroundService>();

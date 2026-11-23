@@ -116,6 +116,11 @@
 - **Centralized Log Aggregation (Seq)**: Real-time log streaming, searching, and error analytics running locally via Docker on port `5341`.
 - **Distributed Tracing (OpenTelemetry)**: In-process OpenTelemetry instrumentation for ASP.NET Core and HttpClient requests.
 
+### 🤖 8. GenAI Integration & AI Task Copilot
+- **Automated Scope Breakdown**: AI Copilot analyzes task titles to generate formatted User Stories, structured Acceptance Criteria checklists (`[ ] ...`), and edge case verification steps.
+- **Resilient Multi-Engine Architecture**: Clean `IAiAssistantService` abstraction supporting **Google Gemini API** integration with offline heuristic reasoning fallback.
+- **Smart Priority Classification**: Automatically classifies task urgency and priority based on domain complexity (e.g. Auth/Security -> Urgent, Database -> High).
+
 ---
 
 ## 🛠️ Tech Stack
@@ -130,6 +135,7 @@
 - **Frontend:** React 18, TypeScript, Vite, Tailwind CSS, Lucide Icons, Axios
 - **Testing:** xUnit, EF Core InMemory, Fluent Assertions (13 Automated Unit Tests)
 - **Observability:** Serilog, Seq (Realtime Centralized Logs), OpenTelemetry Tracing
+- **AI & GenAI:** Google Gemini API Integration, Heuristic Engineering Reasoning
 - **DevOps & Containers:** Docker, Docker Compose, Multi-stage Dockerfiles, GitHub Actions CI/CD
 
 ---
