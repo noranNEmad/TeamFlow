@@ -4,6 +4,9 @@ using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.IdentityModel.Tokens;
+using OpenTelemetry.Trace;
+using Serilog;
+using Serilog.Events;
 using TeamFlow.API.Hubs;
 using TeamFlow.API.Services;
 using TeamFlow.Application;
@@ -12,6 +15,29 @@ using TeamFlow.Infrastructure;
 using TeamFlow.Infrastructure.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Configure Serilog with Seq Sink and Console
+var seqUrl = builder.Configuration["Seq:ServerUrl"] ?? "http://localhost:5341";
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Information()
+    .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
+    .MinimumLevel.Override("Microsoft.Hosting.Lifetime", LogEventLevel.Information)
+    .Enrich.FromLogContext()
+    .Enrich.WithProperty("Application", "TeamFlow.API")
+    .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
+    .WriteTo.Seq(seqUrl)
+    .CreateLogger();
+
+builder.Host.UseSerilog();
+
+// Configure OpenTelemetry Tracing
+builder.Services.AddOpenTelemetry()
+    .WithTracing(tracing =>
+    {
+        tracing
+            .AddAspNetCoreInstrumentation()
+            .AddHttpClientInstrumentation();
+    });
 
 // 1. Add Clean Architecture Layers
 builder.Services.AddApplicationServices();
@@ -109,6 +135,8 @@ if (!app.Environment.IsDevelopment())
     app.UseHttpsRedirection();
 }
 
+app.UseSerilogRequestLogging();
+
 app.UseCors("AllowFrontend");
 
 app.UseAuthentication();
@@ -137,4 +165,16 @@ app.MapHealthChecks("/health/ready", new HealthCheckOptions
     Predicate = check => check.Tags.Contains("ready")
 });
 
-app.Run();
+try
+{
+    Log.Information("Starting TeamFlow API with Serilog and Seq logging at {SeqUrl}...", seqUrl);
+    app.Run();
+}
+catch (Exception ex)
+{
+    Log.Fatal(ex, "TeamFlow API terminated unexpectedly!");
+}
+finally
+{
+    Log.CloseAndFlush();
+}

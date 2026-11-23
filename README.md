@@ -108,6 +108,11 @@
 - **Centralized Rate Limiting**: Fixed window limiter (200 requests/minute per client) to prevent DDoS attacks.
 - **Enterprise Health Probes**: Kubernetes-ready liveness (`/health/live`) and readiness (`/health/ready`) checks.
 
+### 📊 7. Observability, Distributed Tracing & Centralized Logging
+- **Structured JSON Logging**: Powered by **Serilog** with enriched execution context, request IDs, and HTTP telemetry.
+- **Centralized Log Aggregation (Seq)**: Real-time log streaming, searching, and error analytics running locally via Docker on port `5341`.
+- **Distributed Tracing (OpenTelemetry)**: In-process OpenTelemetry instrumentation for ASP.NET Core and HttpClient requests.
+
 ---
 
 ## 🛠️ Tech Stack
@@ -121,6 +126,7 @@
 - **API Gateway:** YARP (Yet Another Reverse Proxy)
 - **Frontend:** React 18, TypeScript, Vite, Tailwind CSS, Lucide Icons, Axios
 - **Testing:** xUnit, EF Core InMemory, Fluent Assertions (13 Automated Unit Tests)
+- **Observability:** Serilog, Seq (Realtime Centralized Logs), OpenTelemetry Tracing
 - **DevOps & Containers:** Docker, Docker Compose, Multi-stage Dockerfiles, GitHub Actions CI/CD
 
 ---
